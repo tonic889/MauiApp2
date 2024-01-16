@@ -23,7 +23,7 @@ stages:
     jobs:
       - job: Android_iOS
         pool:
-          vmImage: 'macOS-11'
+          vmImage: 'macOS-12'
           demands:
           - MSBuild
            
