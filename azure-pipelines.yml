@@ -1,0 +1,73 @@
+# Universal Windows Platform
+
+# Build a Universal Windows Platform project using Visual Studio.
+# Add steps that test and distribute an app, save build artifacts, and more:
+# https://aka.ms/yaml
+
+parameters:
+- name: ProductVersion
+  type: number
+  default: '0.2'
+- name: DotNetVersion
+  type: string
+  default: '8.x'
+
+trigger:
+- master
+
+name: $(Build.DefinitionName) v${{ parameters.ProductVersion }}.$(Build.BuildId)
+
+stages:
+  - stage: Android_Test
+  
+    jobs:
+      - job: Android_iOS
+        pool:
+          vmImage: 'macOS-13'
+          demands:
+          - MSBuild
+           
+        steps:
+       
+        - task: UseDotNet@2
+          displayName: .NET Version
+          inputs:
+            packageType: 'sdk'
+            version: '${{ parameters.DotNetVersion }}'
+
+        - task: JavaToolInstaller@0
+          inputs:
+            versionSpec: '17'
+            jdkArchitectureOption: 'x64'
+            jdkSourceOption: 'PreInstalled'    
+
+        - task: CmdLine@2
+          displayName: 'Install dotnet workloads'
+          inputs:
+            script: 'dotnet workload install maui'
+
+        - task: Bash@3
+          displayName: 'start android emulator'
+          inputs:
+            targetType: 'inline'
+            script: |
+              #!/usr/bin/env bash
+
+              # Install AVD files
+              echo "y" | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install 'system-images;android-27;google_apis;x86'
+
+              # Create emulator
+              echo "no" | $ANDROID_HOME/tools/bin/avdmanager create avd -n xamarin_android_emulator -k 'system-images;android-27;google_apis;x86' --force
+
+              $ANDROID_HOME/emulator/emulator -list-avds
+
+              echo "Starting emulator"
+
+              # Start emulator in background
+              nohup $ANDROID_HOME/emulator/emulator -avd xamarin_android_emulator -no-snapshot > /dev/null 2>&1 &
+              $ANDROID_HOME/platform-tools/adb wait-for-device shell 'while [[ -z $(getprop sys.boot_completed | tr -d '\r') ]]; do sleep 1; done; input keyevent 82'
+
+              $ANDROID_HOME/platform-tools/adb devices
+
+              echo "Emulator started"
+
