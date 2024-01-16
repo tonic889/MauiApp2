@@ -35,12 +35,6 @@ stages:
             packageType: 'sdk'
             version: '${{ parameters.DotNetVersion }}'
 
-        - task: JavaToolInstaller@0
-          inputs:
-            versionSpec: '17'
-            jdkArchitectureOption: 'x64'
-            jdkSourceOption: 'PreInstalled'    
-
         - task: CmdLine@2
           displayName: 'Install dotnet workloads'
           inputs:
