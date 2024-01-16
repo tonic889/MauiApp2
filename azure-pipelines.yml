@@ -23,7 +23,7 @@ stages:
     jobs:
       - job: Android_iOS
         pool:
-          vmImage: 'macOS-13'
+          vmImage: 'macOS-11'
           demands:
           - MSBuild
            
@@ -34,11 +34,6 @@ stages:
           inputs:
             packageType: 'sdk'
             version: '${{ parameters.DotNetVersion }}'
-
-        - task: CmdLine@2
-          displayName: 'Install dotnet workloads'
-          inputs:
-            script: 'dotnet workload install maui'
 
         - task: Bash@3
           displayName: 'start android emulator'
